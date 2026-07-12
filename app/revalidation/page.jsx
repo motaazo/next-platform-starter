@@ -56,11 +56,26 @@ export default async function Page() {
 }
 
 async function RandomWikiArticle() {
-    const randomWiki = await fetch(randomWikiUrl, {
-        next: { revalidate: revalidateTTL, tags: [tagName] }
-    });
+    let content;
+    try {
+        const randomWiki = await fetch(randomWikiUrl, {
+            next: { revalidate: revalidateTTL, tags: [tagName] }
+        });
+        content = await randomWiki.json();
+    } catch {
+        return (
+            <div className="bg-white text-neutral-600 card my-6 max-w-2xl">
+                <div className="card-title text-3xl px-8 pt-8">Couldn&apos;t reach Wikipedia</div>
+                <div className="card-body py-4">
+                    <p className="italic">
+                        The random article couldn&apos;t be fetched (the Wikipedia API is unreachable from this
+                        environment). Try again once the site can make outbound requests.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
-    const content = await randomWiki.json();
     let extract = content.extract;
     if (extract.length > maxExtractLength) {
         extract = extract.slice(0, extract.slice(0, maxExtractLength).lastIndexOf(' ')) + ' [...]';
